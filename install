@@ -1,0 +1,12 @@
+	yum -y install mysql-server
+	yum -y install php-mysql
+	
+
+		chkconfig mysqld on
+		chkconfig --list mysqld
+				mysqld 0:off 1:off 2:on 3:on 4:on 5:on 6:off
+				
+				
+		/etc/rc.d/init.d/mysqld start
+		
+		mysql
