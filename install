@@ -10,3 +10,4 @@ chkconfig --list mysqld
 /etc/rc.d/init.d/mysqld start
 		
 mysql
+   select version();
