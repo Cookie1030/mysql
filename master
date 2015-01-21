@@ -1,0 +1,12 @@
+cd
+date
+date 012110192015(月日时分年)
+setenforce 0
+/etc/init.d/iptables stop
+
+yum -y install mysql-server
+yum -y install php-mysql
+chkconfig mysqld on
+chkconfig --list mysqld
+/etc/rc.d/init.d/mysqld start
+
