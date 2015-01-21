@@ -9,5 +9,40 @@ chkconfig --list mysqld
 				
 /etc/rc.d/init.d/mysqld start
 		
-mysql
-   select version();
+mysql -u root
+select version();
+
+select user,host,password from mysql.user;
+set password for root@localhost=password('135');
+exit
+mysql -u root -p
+select user,host from mysql.user;
+delete from mysql.user where user='XXX';
+
+grant all privileges on *.* to cookie@localhost identified by '135';
+select user from mysql.user where user='cookie';
+exit
+mysql -u cookie -p
+create database test;
+show databases;
+use test
+create table test(num int,name varchar(50));
+show tables;
+insert into test values(1,'cookie1');
+select * from test;
+update test set name='test1';
+select * from test;
+delete from test where num=1;
+select * from test;
+drop table test;
+show tables;
+drop database test;
+show databases;
+exit
+
+mysql -u root -p
+revoke all privileges on *.* from cookie@localhost;
+delete from mysql.user where user='cookie' and host='localhost';
+select user from mysql.user where user='cookie';
+flush privileges;
+exit
