@@ -17,7 +17,6 @@ set password for root@localhost=password('135');
 exit
 mysql -u root -p
 select user,host from mysql.user;
-delete from mysql.user where user='XXX';
 
 grant all privileges on *.* to cookie@localhost identified by '135';
 select user from mysql.user where user='cookie';
