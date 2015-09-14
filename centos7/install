@@ -1,0 +1,10 @@
+yum install mariadb mariadb-server
+
+systemctl start mariadb
+
+systemctl enable mariadb
+
+
+mysql_secure_installation     //set root passwd
+
+mysql -u root -p XXXXX
