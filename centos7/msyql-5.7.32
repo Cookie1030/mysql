@@ -1,0 +1,151 @@
+yum install -y gcc gcc-c++ make tar openssl openssl-devel cmake ncurses ncurses-devel libaio
+groupadd mysql
+useradd -r -g mysql mysql
+usermod -s /sbin/nologin mysql
+
+cd /opt/
+wget https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.32-linux-glibc2.12-x86_64.tar.gz
+tar zxvf mysql-5.7.32-linux-glibc2.12-x86_64.tar.gz
+ 
+mv mysql-5.7.32-linux-glibc2.12-x86_64  /usr/local/mysql/
+ 
+mkdir -p /usr/local/mysql/logs
+touch /usr/local/mysql/logs/mysql-error.log
+ 
+chown -R mysql.mysql /usr/local/mysql/
+ 
+mkdir -p /data/mysql
+ 
+cd /usr/local/mysql/
+ 
+./bin/mysqld --initialize --user=mysql --datadir=/data/mysql    ##记住生成的密码
+ 
+cp ./support-files/mysql.server /etc/init.d/mysqld
+ 
+vim /etc/my.cf
+[client]
+socket = /tmp/mysql.sock
+default-character-set=utf8mb4
+ 
+[mysql]  
+default-character-set = utf8mb4
+ 
+[mysqld]
+init-connect='SET NAMES utf8mb4'
+basedir=/usr/local/mysql      
+datadir=/data/mysql 
+socket=/tmp/mysql.sock
+character-set-server=utf8mb4 
+user = mysql
+bind-address = 0.0.0.0
+server-id = 1
+ 
+sql_mode="NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+ 
+init-connect = 'SET NAMES utf8mb4'
+ 
+skip-name-resolve
+back_log = 300
+ 
+max_connections = 1916
+max_connect_errors = 6000
+open_files_limit = 65535
+table_open_cache = 1024
+max_allowed_packet = 500M
+binlog_cache_size = 1M
+max_heap_table_size = 8M
+tmp_table_size = 128M
+ 
+read_buffer_size = 2M
+read_rnd_buffer_size = 8M
+sort_buffer_size = 8M
+join_buffer_size = 8M
+key_buffer_size = 256M
+ 
+thread_cache_size = 64
+ 
+query_cache_type = 1
+query_cache_size = 64M
+query_cache_limit = 2M
+ 
+ft_min_word_len = 4
+ 
+log_bin = mysql-bin
+binlog_format = mixed
+expire_logs_days = 7 
+ 
+log_error = /usr/local/mysql/logs/mysql-error.log
+slow_query_log = 1
+long_query_time = 1
+slow_query_log_file = /usr/local/mysql/logs/mysql-slow.log
+ 
+log_timestamps=SYSTEM
+ 
+performance_schema = 0
+explicit_defaults_for_timestamp
+ 
+lower_case_table_names = 1
+ 
+skip-external-locking
+ 
+default_storage_engine = InnoDB
+innodb_file_per_table = 1
+innodb_open_files = 500
+innodb_buffer_pool_size = 1024M
+innodb_write_io_threads = 4
+innodb_read_io_threads = 4
+innodb_thread_concurrency = 0
+innodb_purge_threads = 1
+innodb_flush_log_at_trx_commit = 2
+innodb_log_buffer_size = 2M
+innodb_log_file_size = 32M
+innodb_log_files_in_group = 3
+innodb_max_dirty_pages_pct = 90
+innodb_lock_wait_timeout = 120
+ 
+bulk_insert_buffer_size = 8M
+myisam_sort_buffer_size = 64M
+myisam_max_sort_file_size = 10G
+myisam_repair_threads = 1
+ 
+interactive_timeout = 28800
+wait_timeout = 28800
+ 
+ 
+[mysqldump]
+quick
+max_allowed_packet = 500M
+ 
+[myisamchk]
+key_buffer_size = 256M
+sort_buffer_size = 8M
+read_buffer = 4M
+write_buffer = 4M
+ 
+:wq 
+ 
+/etc/init.d/mysqld start
+chkconfig --level 35 mysqld on
+chkconfig --list mysqld
+ 
+vim /etc/profile
+     export PATH=$PATH:/usr/local/mysql/bin/
+:wq
+source /etc/profile
+ 
+#复制初始密码
+ 
+mysql -u root -p
+mysql> set password for 'root'@'localhost' = password('demo#123');
+mysql> use mysql;
+mysql> create user 'test'@'%' identified by 'test123';
+mysql> grant all privileges on *.* to 'test'@'%';
+mysql> flush privileges;
+mysql> exit
+
+mysql -u test -p
+
+mysql> create database test01;
+Query OK, 1 row affected (0.00 sec)
+
+/etc/init.d/mysqld restart
