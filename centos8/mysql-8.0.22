@@ -1,0 +1,186 @@
+yum install -y gcc gcc-c++ make tar openssl openssl-devel cmake ncurses ncurses-devel libaio
+groupadd mysql
+useradd -r -g mysql mysql
+
+mkdir -p /data/mysql
+ 
+cd /opt/
+wget https://downloads.mysql.com/archives/get/p/23/file/mysql-8.0.22-linux-glibc2.12-x86_64.tar.xz
+ 
+xz mysql-8.0.22-linux-glibc2.12-x86_64.tar.xz
+tar -xvf mysql-8.0.22-linux-glibc2.12-x86_64.tar
+ 
+mv mysql-8.0.22-linux-glibc2.12-x86_64 /usr/local/mysql
+cd /usr/local/mysql
+mkdir logs
+cd logs
+touch mysql-error.log
+ 
+chown -R mysql.mysql /usr/local/mysql
+ 
+./bin/mysqld --initialize --user=mysql --datadir=/data/mysql            #记住生成的密码
+ 
+vim /etc/my.cnf
+[client]
+port = 3306
+socket = /tmp/mysql.sock
+default-character-set=utf8mb4
+ 
+[mysql]  
+default-character-set = utf8mb4
+ 
+[mysqld]
+init-connect='SET NAMES utf8mb4'
+basedir=/usr/local/mysql      
+datadir=/data/mysql 
+socket=/tmp/mysql.sock
+character-set-server=utf8mb4 
+user = mysql
+bind-address = 0.0.0.0
+server-id = 1
+ 
+init-connect = 'SET NAMES utf8mb4'
+ 
+skip-name-resolve
+back_log = 300
+ 
+max_connections = 1916
+max_connect_errors = 6000
+open_files_limit = 65535
+table_open_cache = 1024
+max_allowed_packet = 500M
+binlog_cache_size = 1M
+max_heap_table_size = 8M
+tmp_table_size = 128M
+ 
+read_buffer_size = 2M
+read_rnd_buffer_size = 8M
+sort_buffer_size = 8M
+join_buffer_size = 8M
+key_buffer_size = 256M
+ 
+thread_cache_size = 64
+ 
+ft_min_word_len = 4
+ 
+log_bin = mysql-bin
+binlog_format = mixed
+binlog_expire_logs_seconds = 7 
+ 
+log_error = /usr/local/mysql/logs/mysql-error.log
+slow_query_log = 1
+long_query_time = 1
+slow_query_log_file = /usr/local/mysql/logs/mysql-slow.log
+ 
+log_timestamps=SYSTEM
+ 
+performance_schema = 0
+explicit_defaults_for_timestamp
+ 
+skip-external-locking
+ 
+default_storage_engine = InnoDB
+innodb_file_per_table = 1
+innodb_open_files = 500
+innodb_buffer_pool_size = 1024M
+innodb_write_io_threads = 4
+innodb_read_io_threads = 4
+innodb_thread_concurrency = 0
+innodb_purge_threads = 1
+innodb_flush_log_at_trx_commit = 2
+innodb_log_buffer_size = 2M
+innodb_log_file_size = 32M
+innodb_log_files_in_group = 3
+innodb_max_dirty_pages_pct = 90
+innodb_lock_wait_timeout = 120
+ 
+bulk_insert_buffer_size = 8M
+myisam_sort_buffer_size = 64M
+myisam_max_sort_file_size = 10G
+myisam_repair_threads = 1
+ 
+interactive_timeout = 28800
+wait_timeout = 28800
+ 
+ 
+[mysqldump]
+quick
+max_allowed_packet = 500M
+ 
+[myisamchk]
+key_buffer_size = 256M
+sort_buffer_size = 8M
+read_buffer = 4M
+write_buffer = 4M
+ 
+:wq
+ 
+cp ./support-files/mysql.server /etc/init.d/mysqld
+ 
+/etc/init.d/mysqld start
+ 
+vim /etc/profile
+export PATH=$PATH:/usr/local/mysql/bin/
+:wq
+ 
+source /etc/profile
+ 
+ln -s /usr/lib64/libtinfo.so.6.1 /usr/lib64/libtinfo.so.5
+ 
+[root@localhost bin]# mysql -u root -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.22
+ 
+Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+ 
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+ 
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+ 
+mysql> show databases;
+ERROR 1820 (HY000): You must reset your password using ALTER USER statement before executing this statement.
+mysql> 
+mysql>  
+mysql> alter user 'root'@'localhost' identified by 'demo@123';
+Query OK, 0 rows affected (0.01 sec)
+ 
+mysql> flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+ 
+mysql> select version();
++-----------+
+| version() |
++-----------+
+| 8.0.22    |
++-----------+
+1 row in set (0.00 sec)
+ 
+mysql> 
+mysql> use mysql;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+ 
+Database changed
+mysql> select host,user from user;
++-----------+------------------+
+| host      | user             |
++-----------+------------------+
+| localhost | mysql.infoschema |
+| localhost | mysql.session    |
+| localhost | mysql.sys        |
+| localhost | root             |
++-----------+------------------+
+4 rows in set (0.00 sec)
+ 
+mysql> update user set host='%' where user='root';
+Query OK, 1 row affected (0.02 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+ 
+mysql> flush privileges;
+Query OK, 0 rows affected (0.01 sec)
+ 
+mysql> 
